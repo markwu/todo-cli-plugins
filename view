@@ -1,0 +1,117 @@
+#!/bin/bash
+#  2010  Mark Wu  http://blog.markplace.net
+#  License:    GPL,  http://www.gnu.org/copyleft/gpl.html
+#  Inspired  by   Paul  Mansfield's  projectview  http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
+
+#  Stop  Verbose  lines,  thanks  to  Mark  Harrison
+TODOTXT_VERBOSE=0
+
+action=$1
+shift
+option=$1;
+shift
+term="$*"
+
+function usage() {
+    echo  "$(basename  $0) [OPTION] [TERM]"
+    echo  "    Show  todo  items  containing  TERM,  grouped  by  option,  and  displayed  in"
+    echo  "    priority  order.  If  no  TERM  provided,  displays  entire  todo.txt."
+    echo  "    OPTION:"
+    echo  "        project : Summarized by project ( +project )"
+    echo  "        contact : Summarized by contact ( @contact )"
+    echo  "        date    : Summarized by date ( t:date )"
+    echo  "    Example:"
+    echo  "        $(basename  $0) project          # Show todo items by project"
+    echo  "        $(basename  $0) project @contact # Show todo items by project and filter by @contact only"
+    echo  "        $(basename  $0) date +project    # Show todo items by date and filter by +project only"
+    echo  ""
+    exit
+}
+
+function project_view() {
+    #  Show  projects  in  alphabetical  order  and  todo  items  in  priority  order
+    echo  "=====  Projects  ====="
+    echo  ""
+
+    #  Find  all  projects  and  sort
+    PROJECTS=`grep  -o  '[^  ]*+[^  ]\+'  "$TODO_FILE"  |  grep  '^+'  |  sort  -u  |  sed  's/^+//g'`
+
+    #  For  each  project  show  header  and  the  list  of  todo  items
+    for  i  in  $PROJECTS  ;  do
+        #  Use  core  _list  function,  does  numbering  and  colouring  for  us
+        PROJECT_LIST=`_list  "$TODO_FILE"  "+$i"  "$term"  |  sed  's/\  *+[a-zA-Z0-9\{._\-\}]*\ */ /g'`
+        if  [[  -n  "${PROJECT_LIST}"  ]];  then
+            echo  "---  $i  ---"
+            echo  "${PROJECT_LIST}"
+            echo  ""
+        fi
+    done
+    #  Show  todo  items  not  associated  to  a  project
+    PROJECT_LIST=`_list  "$TODO_FILE"  "$term"  |  grep  -v  "+\w"`
+    if  [[  -n  "${PROJECT_LIST}"  ]];  then
+        echo  "---  Items without project  ---"
+        echo  "${PROJECT_LIST}"
+    fi
+}
+
+function date_view() {
+    #  Show  dates in  alphabetical  order  and  todo  items  in  priority  order
+    echo  "=====  Dates  ====="
+    echo  ""
+
+    #  Find  all  dates  and  sort
+    DATES=`grep  -o  '[^  ]*t:[^  ]\+'  "$TODO_FILE"  |  grep  '^t:'  |  sort  -u  |  sed  's/^t://g'`
+
+    #  For  each  date  show  header  and  the  list  of  todo  items
+    for  i  in  $DATES  ;  do
+        #  Use  core  _list  function,  does  numbering  and  colouring  for  us
+        DATE_LIST=`_list  "$TODO_FILE"  "t:$i"  "$term"  |  sed  's/\  *t:[0-9-]*\ */ /g'`
+        if  [[  -n  "${DATE_LIST}"  ]];  then
+            echo  "---  $i  ---"
+            echo  "${DATE_LIST}"
+            echo  ""
+        fi
+    done
+    #  Show  todo  items  not  associated  to  a  date
+    DATE_LIST=`_list  "$TODO_FILE"  "$term"  |  grep  -v  "t:[0-9-]*"`
+    if  [[  -n  "${DATE_LIST}"  ]];  then
+        echo  "---  Items without date  ---"
+        echo  "${DATE_LIST}"
+    fi
+}
+
+function contact_view() {
+    #  Show  contacts in  alphabetical  order  and  todo  items  in  priority  order
+    echo  "=====  Contacts  ====="
+    echo  ""
+
+    #  Find  all  contacts  and  sort
+    CONTACTS=`grep  -o  '[^  ]*@[^  ]\+'  "$TODO_FILE"  |  grep  '^@'  |  sort  -u  |  sed  's/@//g'`
+
+    #  For  each  contact  show  header  and  the  list  of  todo  items
+    for  i  in  $CONTACTS  ;  do
+        #  Use  core  _list  function,  does  numbering  and  colouring  for  us
+        CONTACT_LIST=`_list  "$TODO_FILE"  "@$i"  "$term"  |  sed  's/\  *@[^ ]*\ */ /g'`
+        if  [[  -n  "${CONTACT_LIST}"  ]];  then
+            echo  "---  $i  ---"
+            echo  "${CONTACT_LIST}"
+            echo  ""
+        fi
+    done
+    #  Show  todo  items  not  associated  to  a  contact
+    CONTACT_LIST=`_list  "$TODO_FILE"  "$term"  |  grep  -v  "@[^ ]*\ *"`
+    if  [[  -n  "${CONTACT_LIST}"  ]];  then
+        echo  "---  Items without contact  ---"
+        echo  "${CONTACT_LIST}"
+    fi
+}
+
+if [ "$option" = "project" ]; then
+    project_view
+elif [ "$option" = "contact" ]; then
+    contact_view
+elif [ "$option" = "date" ]; then
+    date_view
+else
+    usage
+fi
