@@ -13,17 +13,17 @@ shift
 term="$*"
 
 function usage() {
-    echo  "$(basename  $0) [OPTION] [TERM]"
+    echo  "  $(basename  $0) [OPTION] [TERM]"
     echo  "    Show  todo  items  containing  TERM,  grouped  by  option,  and  displayed  in"
     echo  "    priority  order.  If  no  TERM  provided,  displays  entire  todo.txt."
     echo  "    OPTION:"
-    echo  "        project : Summarized by project ( +project )"
-    echo  "        contact : Summarized by contact ( @contact )"
-    echo  "        date    : Summarized by date ( t:date )"
+    echo  "      project : Summarized by project ( +project )"
+    echo  "      contact : Summarized by contact ( @contact )"
+    echo  "      date    : Summarized by date ( t:date )"
     echo  "    Example:"
-    echo  "        $(basename  $0) project          # Show todo items by project"
-    echo  "        $(basename  $0) project @contact # Show todo items by project and filter by @contact only"
-    echo  "        $(basename  $0) date +project    # Show todo items by date and filter by +project only"
+    echo  "      \$ todo.sh $(basename  $0) project          # Show todo items by project"
+    echo  "      \$ todo.sh $(basename  $0) project @contact # Show todo items by project and filter by @contact only"
+    echo  "      \$ todo.sh $(basename  $0) date +project    # Show todo items by date and filter by +project only"
     echo  ""
     exit
 }
