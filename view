@@ -39,7 +39,7 @@ function project_view() {
     #  For  each  project  show  header  and  the  list  of  todo  items
     for  i  in  $PROJECTS  ;  do
         #  Use  core  _list  function,  does  numbering  and  colouring  for  us
-        PROJECT_LIST=`_list  "$TODO_FILE"  "+$i"  "$term"  |  sed  's/\  *+[a-zA-Z0-9\{._\-\}]*\ */ /g'`
+        PROJECT_LIST=`_list  "$TODO_FILE"  "+$i"  "$term"  |  sed  's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g'`
         if  [[  -n  "${PROJECT_LIST}"  ]];  then
             echo  "---  $i  ---"
             echo  "${PROJECT_LIST}"
@@ -65,7 +65,7 @@ function date_view() {
     #  For  each  date  show  header  and  the  list  of  todo  items
     for  i  in  $DATES  ;  do
         #  Use  core  _list  function,  does  numbering  and  colouring  for  us
-        DATE_LIST=`_list  "$TODO_FILE"  "t:$i"  "$term"  |  sed  's/\  *t:[0-9-]*\ */ /g'`
+        DATE_LIST=`_list  "$TODO_FILE"  "t:$i"  "$term"  |  sed  's/\(^t:\|\ *t:\)[0-9-]*\ */ /g'`
         if  [[  -n  "${DATE_LIST}"  ]];  then
             echo  "---  $i  ---"
             echo  "${DATE_LIST}"
@@ -91,7 +91,7 @@ function context_view() {
     #  For  each  context  show  header  and  the  list  of  todo  items
     for  i  in  $CONTEXTS  ;  do
         #  Use  core  _list  function,  does  numbering  and  colouring  for  us
-        CONTEXT_LIST=`_list  "$TODO_FILE"  "@$i"  "$term"  |  sed  's/\  *@[^ ]*\ */ /g'`
+        CONTEXT_LIST=`_list  "$TODO_FILE"  "@$i"  "$term"  |  sed  's/\(^@\|\ *@\)[^ ]*\ */ /g'`
         if  [[  -n  "${CONTEXT_LIST}"  ]];  then
             echo  "---  $i  ---"
             echo  "${CONTEXT_LIST}"
