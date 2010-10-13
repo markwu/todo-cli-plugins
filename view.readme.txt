@@ -1,9 +1,9 @@
 Plugin for Todo.txt CLI
 
 Plugin Name : view
-Author      : Mark Wu http://blog.markplace.net
-License     : GPL,  http://www.gnu.org/copyleft/gpl.html
-Inspired    : By Paul Mansfield's projectview from http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
+Author      : Mark Wu, http://blog.markplace.net
+License     : GPL, http://www.gnu.org/copyleft/gpl.html
+Inspired    : By Paul Mansfield's projectview, http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
 Description : Show todo items containing TERM, grouped by [OPTION], and displayed in priority order. If no TERM provided, displays entire todo.txt.
 Usage       :
   todo.sh view [OPTION] [TERM]
@@ -11,7 +11,10 @@ Usage       :
      project : Summarized by project ( +project )
      context : Summarized by context ( @context )
      date    : Summarized by date ( t:date )
+     before  : Summarized by date before and with today
+     after   : Summarized by date after and with today"
+
 Example     :
-  $ todo.sh view project          # Show todo items by project
-  $ todo.sh view project @context # Show todo items by project and filter by @context
-  $ todo.sh view date +project    # Show todo items by date and filter by +project
+  $ todo.sh view project          # Show todo items grouped by project
+  $ todo.sh view project @context # Show todo items grouped by project and filtered by @context
+  $ todo.sh view date +project    # Show todo items grouped by date and filtered by +project

@@ -1,9 +1,9 @@
 #!/bin/bash
-#  2010  Mark Wu  http://blog.markplace.net
-#  License:    GPL,  http://www.gnu.org/copyleft/gpl.html
-#  Inspired  by   Paul  Mansfield's  projectview  http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
+#  Author : Mark Wu, http://blog.markplace.net
+#  License: GPL, http://www.gnu.org/copyleft/gpl.html
+#  Inspired by Paul Mansfield's projectview, http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
 
-#  Stop  Verbose  lines,  thanks  to  Mark  Harrison
+#  Stop Verbose lines, thanks to Mark Harrison
 TODOTXT_VERBOSE=0
 
 action=$1
@@ -13,96 +13,113 @@ shift
 term="$*"
 
 function usage() {
-    echo  "  $(basename  $0) [OPTION] [TERM]"
-    echo  "    Show  todo  items  containing  TERM,  grouped  by  option,  and  displayed  in"
-    echo  "    priority  order.  If  no  TERM  provided,  displays  entire  todo.txt."
-    echo  "    OPTION:"
-    echo  "      project : Summarized by project ( +project )"
-    echo  "      context : Summarized by context ( @context )"
-    echo  "      date    : Summarized by date ( t:date )"
-    echo  "    Example:"
-    echo  "      \$ todo.sh $(basename  $0) project          # Show todo items by project"
-    echo  "      \$ todo.sh $(basename  $0) project @context # Show todo items by project and filter by @context only"
-    echo  "      \$ todo.sh $(basename  $0) date +project    # Show todo items by date and filter by +project only"
-    echo  ""
+    echo "  $(basename $0) [OPTION] [TERM]"
+    echo "    Show todo items containing TERM, grouped by OPTION, and displayed in"
+    echo "    priority order. If no TERM provided, displays entire todo.txt."
+    echo "    OPTION:"
+    echo "      project : Summarized by project ( +project )"
+    echo "      context : Summarized by context ( @context )"
+    echo "      date    : Summarized by date ( t:date )"
+    echo "      before  : Summarized by date before and with today"
+    echo "      after   : Summarized by date after and with today"
+    echo "    Example:"
+    echo "      \$ todo.sh $(basename $0) project          # Show todo items grouped by project"
+    echo "      \$ todo.sh $(basename $0) project @context # Show todo items grouped by project and filtered by @context"
+    echo "      \$ todo.sh $(basename $0) date +project    # Show todo items grouped by date and filtered by +project"
+    echo ""
     exit
 }
 
 function project_view() {
-    #  Show  projects  in  alphabetical  order  and  todo  items  in  priority  order
-    echo  "=====  Projects  ====="
-    echo  ""
+    #  Show projects in alphabetical order and todo items in priority order
+    echo "=====  Projects  ====="
+    echo ""
 
-    #  Find  all  projects  and  sort
-    PROJECTS=`grep  -o  '[^  ]*+[^  ]\+'  "$TODO_FILE"  |  grep  '^+'  |  sort  -u  |  sed  's/^+//g'`
+    #  Find all projects and sort
+    PROJECTS=`grep -o '[^  ]*+[^  ]\+' "$TODO_FILE" | grep '^+' | sort -u | sed 's/^+//g'`
 
-    #  For  each  project  show  header  and  the  list  of  todo  items
-    for  i  in  $PROJECTS  ;  do
-        #  Use  core  _list  function,  does  numbering  and  colouring  for  us
-        PROJECT_LIST=`_list  "$TODO_FILE"  "+$i"  "$term"  |  sed  's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g'`
-        if  [[  -n  "${PROJECT_LIST}"  ]];  then
-            echo  "---  $i  ---"
-            echo  "${PROJECT_LIST}"
-            echo  ""
+    #  For each project show header and the list of todo items
+    for i in $PROJECTS; do
+        #  Use core _list function, does numbering and colouring for us
+        PROJECT_LIST=`_list "$TODO_FILE" "+$i" "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g'`
+        if [ -n "${PROJECT_LIST}" ]; then
+            echo "---  $i  ---"
+            echo "${PROJECT_LIST}"
+            echo ""
         fi
     done
-    #  Show  todo  items  not  associated  to  a  project
-    PROJECT_LIST=`_list  "$TODO_FILE"  "$term"  |  grep  -v  "+\w"`
-    if  [[  -n  "${PROJECT_LIST}"  ]];  then
-        echo  "---  Items without project  ---"
-        echo  "${PROJECT_LIST}"
+    #  Show todo items not associated to a project
+    PROJECT_LIST=`_list "$TODO_FILE" "$term" | grep -v "+\w"`
+    if  [ -n "${PROJECT_LIST}" ]; then
+        echo "---  Items without project  ---"
+        echo "${PROJECT_LIST}"
     fi
 }
 
 function date_view() {
-    #  Show  dates in  alphabetical  order  and  todo  items  in  priority  order
-    echo  "=====  Dates  ====="
-    echo  ""
+    #  Show dates in alphabetical order and todo items in priority order
+    echo "=====  Dates  ====="
+    echo ""
 
-    #  Find  all  dates  and  sort
-    DATES=`grep  -o  '[^  ]*t:[^  ]\+'  "$TODO_FILE"  |  grep  '^t:'  |  sort  -u  |  sed  's/^t://g'`
+    #  Find all dates and sort
+    DATES=`grep -o '[^  ]*t:[^  ]\+' "$TODO_FILE" | grep '^t:' | sort -u | sed 's/^t://g'`
 
-    #  For  each  date  show  header  and  the  list  of  todo  items
-    for  i  in  $DATES  ;  do
-        #  Use  core  _list  function,  does  numbering  and  colouring  for  us
-        DATE_LIST=`_list  "$TODO_FILE"  "t:$i"  "$term"  |  sed  's/\(^t:\|\ *t:\)[0-9-]*\ */ /g'`
-        if  [[  -n  "${DATE_LIST}"  ]];  then
+    #  Today
+    TODAY=`date +%Y-%m-%d`
+    TODAY=`date -d $TODAY +%s`
+
+    #  For each date show header and the list of todo items
+    for i in $DATES ; do
+        # Check the date is before or after
+        DATE=`date -d "$i" +%s`
+        if [ "$1" = "after" ]; then
+            if [ $DATE -lt $TODAY ]; then
+                continue
+            fi
+        elif [ "$1" = "before" ]; then
+            if [ $DATE -gt $TODAY ]; then
+                continue
+            fi
+        fi
+        #  Use core _list function, does numbering and colouring for us
+        DATE_LIST=`_list "$TODO_FILE" "t:$i" "$term" | sed 's/\(^t:\|\ *t:\)[0-9-]*\ */ /g'`
+        if [ -n "${DATE_LIST}" ]; then
             echo  "---  $i  ---"
             echo  "${DATE_LIST}"
             echo  ""
         fi
     done
-    #  Show  todo  items  not  associated  to  a  date
-    DATE_LIST=`_list  "$TODO_FILE"  "$term"  |  grep  -v  "t:[0-9-]*"`
-    if  [[  -n  "${DATE_LIST}"  ]];  then
-        echo  "---  Items without date  ---"
-        echo  "${DATE_LIST}"
+    #  Show todo items not associated to a date
+    DATE_LIST=`_list "$TODO_FILE" "$term" | grep -v "t:[0-9-]*"`
+    if [ -n "${DATE_LIST}" ]; then
+        echo "---  Items without date  ---"
+        echo "${DATE_LIST}"
     fi
 }
 
 function context_view() {
-    #  Show  contexts in  alphabetical  order  and  todo  items  in  priority  order
-    echo  "=====  Contexts  ====="
-    echo  ""
+    #  Show contexts in alphabetical order and todo items in priority order
+    echo "=====  Contexts  ====="
+    echo ""
 
-    #  Find  all  contexts  and  sort
-    CONTEXTS=`grep  -o  '[^  ]*@[^  ]\+'  "$TODO_FILE"  |  grep  '^@'  |  sort  -u  |  sed  's/@//g'`
+    #  Find all contexts and sort
+    CONTEXTS=`grep -o '[^  ]*@[^  ]\+' "$TODO_FILE" | grep '^@' | sort -u | sed 's/@//g'`
 
-    #  For  each  context  show  header  and  the  list  of  todo  items
-    for  i  in  $CONTEXTS  ;  do
-        #  Use  core  _list  function,  does  numbering  and  colouring  for  us
-        CONTEXT_LIST=`_list  "$TODO_FILE"  "@$i"  "$term"  |  sed  's/\(^@\|\ *@\)[^ ]*\ */ /g'`
-        if  [[  -n  "${CONTEXT_LIST}"  ]];  then
-            echo  "---  $i  ---"
-            echo  "${CONTEXT_LIST}"
-            echo  ""
+    #  For each context show header and the list of todo items
+    for i in $CONTEXTS ; do
+        #  Use core _list function, does numbering and colouring for us
+        CONTEXT_LIST=`_list "$TODO_FILE" "@$i" "$term" | sed 's/\(^@\|\ *@\)[^ ]*\ */ /g'`
+        if [ -n "${CONTEXT_LIST}" ]; then
+            echo "---  $i  ---"
+            echo "${CONTEXT_LIST}"
+            echo ""
         fi
     done
-    #  Show  todo  items  not  associated  to  a  context
-    CONTEXT_LIST=`_list  "$TODO_FILE"  "$term"  |  grep  -v  "@[^ ]*\ *"`
-    if  [[  -n  "${CONTEXT_LIST}"  ]];  then
-        echo  "---  Items without context  ---"
-        echo  "${CONTEXT_LIST}"
+    #  Show todo items not associated to a context
+    CONTEXT_LIST=`_list "$TODO_FILE" "$term" | grep -v "@[^ ]*\ *"`
+    if [ -n "${CONTEXT_LIST}" ]; then
+        echo "---  Items without context  ---"
+        echo "${CONTEXT_LIST}"
     fi
 }
 
@@ -112,6 +129,10 @@ elif [ "$option" = "context" ]; then
     context_view
 elif [ "$option" = "date" ]; then
     date_view
+elif [ "$option" = "after" ]; then
+    date_view after
+elif [ "$option" = "before" ]; then
+    date_view before
 else
     usage
 fi
