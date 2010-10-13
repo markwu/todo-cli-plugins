@@ -9,9 +9,9 @@ Usage       :
   todo.sh view [OPTION] [TERM]
   [OPTION]
      project : Summarized by project ( +project )
-     contact : Summarized by contact ( @contact )
+     context : Summarized by context ( @context )
      date    : Summarized by date ( t:date )
 Example     :
   $ todo.sh view project          # Show todo items by project
-  $ todo.sh view project @contact # Show todo items by project and filter by @contact
+  $ todo.sh view project @context # Show todo items by project and filter by @context
   $ todo.sh view date +project    # Show todo items by date and filter by +project

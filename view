@@ -18,11 +18,11 @@ function usage() {
     echo  "    priority  order.  If  no  TERM  provided,  displays  entire  todo.txt."
     echo  "    OPTION:"
     echo  "      project : Summarized by project ( +project )"
-    echo  "      contact : Summarized by contact ( @contact )"
+    echo  "      context : Summarized by context ( @context )"
     echo  "      date    : Summarized by date ( t:date )"
     echo  "    Example:"
     echo  "      \$ todo.sh $(basename  $0) project          # Show todo items by project"
-    echo  "      \$ todo.sh $(basename  $0) project @contact # Show todo items by project and filter by @contact only"
+    echo  "      \$ todo.sh $(basename  $0) project @context # Show todo items by project and filter by @context only"
     echo  "      \$ todo.sh $(basename  $0) date +project    # Show todo items by date and filter by +project only"
     echo  ""
     exit
@@ -80,36 +80,36 @@ function date_view() {
     fi
 }
 
-function contact_view() {
-    #  Show  contacts in  alphabetical  order  and  todo  items  in  priority  order
-    echo  "=====  Contacts  ====="
+function context_view() {
+    #  Show  contexts in  alphabetical  order  and  todo  items  in  priority  order
+    echo  "=====  Contexts  ====="
     echo  ""
 
-    #  Find  all  contacts  and  sort
-    CONTACTS=`grep  -o  '[^  ]*@[^  ]\+'  "$TODO_FILE"  |  grep  '^@'  |  sort  -u  |  sed  's/@//g'`
+    #  Find  all  contexts  and  sort
+    CONTEXTS=`grep  -o  '[^  ]*@[^  ]\+'  "$TODO_FILE"  |  grep  '^@'  |  sort  -u  |  sed  's/@//g'`
 
-    #  For  each  contact  show  header  and  the  list  of  todo  items
-    for  i  in  $CONTACTS  ;  do
+    #  For  each  context  show  header  and  the  list  of  todo  items
+    for  i  in  $CONTEXTS  ;  do
         #  Use  core  _list  function,  does  numbering  and  colouring  for  us
-        CONTACT_LIST=`_list  "$TODO_FILE"  "@$i"  "$term"  |  sed  's/\  *@[^ ]*\ */ /g'`
-        if  [[  -n  "${CONTACT_LIST}"  ]];  then
+        CONTEXT_LIST=`_list  "$TODO_FILE"  "@$i"  "$term"  |  sed  's/\  *@[^ ]*\ */ /g'`
+        if  [[  -n  "${CONTEXT_LIST}"  ]];  then
             echo  "---  $i  ---"
-            echo  "${CONTACT_LIST}"
+            echo  "${CONTEXT_LIST}"
             echo  ""
         fi
     done
-    #  Show  todo  items  not  associated  to  a  contact
-    CONTACT_LIST=`_list  "$TODO_FILE"  "$term"  |  grep  -v  "@[^ ]*\ *"`
-    if  [[  -n  "${CONTACT_LIST}"  ]];  then
-        echo  "---  Items without contact  ---"
-        echo  "${CONTACT_LIST}"
+    #  Show  todo  items  not  associated  to  a  context
+    CONTEXT_LIST=`_list  "$TODO_FILE"  "$term"  |  grep  -v  "@[^ ]*\ *"`
+    if  [[  -n  "${CONTEXT_LIST}"  ]];  then
+        echo  "---  Items without context  ---"
+        echo  "${CONTEXT_LIST}"
     fi
 }
 
 if [ "$option" = "project" ]; then
     project_view
-elif [ "$option" = "contact" ]; then
-    contact_view
+elif [ "$option" = "context" ]; then
+    context_view
 elif [ "$option" = "date" ]; then
     date_view
 else
