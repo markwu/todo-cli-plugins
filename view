@@ -64,6 +64,13 @@ function date_view() {
     #  Find all dates and sort
     DATES=`grep -o '[^  ]*t:[^  ]\+' "$TODO_FILE" | grep '^t:' | sort -u | sed 's/^t://g'`
 
+    #  Date range
+    RANGE=$1
+    if [[ ( $RANGE != "date" ) && ( $RANGE != "after") && ( $RANGE != "before" ) ]]; then
+        RANGE=`date -d $RANGE +%Y-%m-%d`
+        RANGE=`date -d $RANGE +%s`
+    fi
+
     #  Today
     TODAY=`date +%Y-%m-%d`
     TODAY=`date -d $TODAY +%s`
@@ -72,13 +79,27 @@ function date_view() {
     for i in $DATES ; do
         # Check the date is before or after
         DATE=`date -d "$i" +%s`
-        if [ "$1" = "after" ]; then
+        if [ $RANGE = "after" ]; then
             if [ $DATE -lt $TODAY ]; then
                 continue
             fi
-        elif [ "$1" = "before" ]; then
+        elif [ $RANGE = "before" ]; then
             if [ $DATE -gt $TODAY ]; then
                 continue
+            fi
+        elif [ $RANGE != "date" ]; then
+            if [ $RANGE = $TODAY ]; then
+                if [ $DATE != $TODAY ]; then
+                    continue
+                fi
+            elif [ $RANGE -gt $TODAY ]; then
+                if [[ ( $DATE -lt $TODAY ) || ( $DATE -gt $RANGE ) ]]; then
+                    continue
+                fi
+            elif [ $RANGE -lt $TODAY ]; then
+                if [[ ( $DATE -gt $TODAY ) || ( $DATE -lt $RANGE ) ]]; then
+                    continue
+                fi
             fi
         fi
         #  Use core _list function, does numbering and colouring for us
@@ -123,16 +144,16 @@ function context_view() {
     fi
 }
 
-if [ "$option" = "project" ]; then
-    project_view
-elif [ "$option" = "context" ]; then
-    context_view
-elif [ "$option" = "date" ]; then
-    date_view
-elif [ "$option" = "after" ]; then
-    date_view after
-elif [ "$option" = "before" ]; then
-    date_view before
+
+OPTIONCHECK=`echo $option | sed -n '/^\(project\|context\|date\|nodate\|after\|before\|today\|tomorrow\|yesterday\|\([+-][0-9]\+\|[0-9]\+\)\(days\|weeks\|months\|years\)\)$/p'`
+if [ -n "$OPTIONCHECK" ]; then
+    if [ "$option" = "project" ]; then
+        project_view
+    elif [ "$option" = "context" ]; then
+        context_view
+    else
+        date_view $option
+    fi
 else
     usage
 fi
