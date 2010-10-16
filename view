@@ -1,16 +1,21 @@
 #!/bin/bash
-#  Author : Mark Wu, http://blog.markplace.net
-#  License: GPL, http://www.gnu.org/copyleft/gpl.html
-#  Inspired by Paul Mansfield's projectview, http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
+# Author : Mark Wu, http://blog.markplace.net
+# License: GPL, http://www.gnu.org/copyleft/gpl.html
+# Inspired by Paul Mansfield's projectview, http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
 
-#  Stop Verbose lines, thanks to Mark Harrison
+# Stop Verbose lines, thanks to Mark Harrison
 TODOTXT_VERBOSE=0
 
+# Get action
 action=$1
 shift
+
+# Get option
 option=$1;
 shift
-term="$*"
+
+# Get rest of them
+term="$@"
 
 function usage() {
     echo "  $(basename $0) [OPTION] [TERM]"
@@ -31,28 +36,54 @@ function usage() {
 }
 
 function project_view() {
-    #  Show projects in alphabetical order and todo items in priority order
+    # Show projects in alphabetical order and todo items in priority order
     echo "=====  Projects  ====="
     echo ""
 
-    #  Find all projects and sort
+    # Find all projects and sort
     PROJECTS=`grep -o '[^  ]*+[^  ]\+' "$TODO_FILE" | grep '^+' | sort -u | sed 's/^+//g'`
 
-    #  For each project show header and the list of todo items
-    for i in $PROJECTS; do
-        #  Use core _list function, does numbering and colouring for us
-        PROJECT_LIST=`_list "$TODO_FILE" "+$i" "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g'`
-        if [ -n "${PROJECT_LIST}" ]; then
-            echo "---  $i  ---"
+    # For each project show header and the list of todo items
+    for project in $PROJECTS; do
+        # Use core _list function, does numbering and colouring for us
+        PROJECT_LIST=`_list "$TODO_FILE" "+$project" "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g'`
+        if [[ -n "${PROJECT_LIST}" ]]; then
+            echo "---  $project  ---"
             echo "${PROJECT_LIST}"
             echo ""
         fi
     done
-    #  Show todo items not associated to a project
+    # Show todo items not associated to a project
     PROJECT_LIST=`_list "$TODO_FILE" "$term" | grep -v "+\w"`
-    if  [ -n "${PROJECT_LIST}" ]; then
+    if  [[ -n "${PROJECT_LIST}" ]]; then
         echo "---  Items without project  ---"
         echo "${PROJECT_LIST}"
+    fi
+}
+
+function context_view() {
+    # Show contexts in alphabetical order and todo items in priority order
+    echo "=====  Contexts  ====="
+    echo ""
+
+    # Find all contexts and sort
+    CONTEXTS=`grep -o '[^  ]*@[^  ]\+' "$TODO_FILE" | grep '^@' | sort -u | sed 's/@//g'`
+
+    # For each context show header and the list of todo items
+    for context in $CONTEXTS ; do
+        # Use core _list function, does numbering and colouring for us
+        CONTEXT_LIST=`_list "$TODO_FILE" "@$context" "$term" | sed 's/\(^@\|\ *@\)[^ ]*\ */ /g'`
+        if [[ -n "${CONTEXT_LIST}" ]]; then
+            echo "---  $context  ---"
+            echo "${CONTEXT_LIST}"
+            echo ""
+        fi
+    done
+    # Show todo items not associated to a context
+    CONTEXT_LIST=`_list "$TODO_FILE" "$term" | grep -v "@[^ ]*\ *"`
+    if [[ -n "${CONTEXT_LIST}" ]]; then
+        echo "---  Items without context  ---"
+        echo "${CONTEXT_LIST}"
     fi
 }
 
@@ -66,7 +97,7 @@ function date_view() {
 
     #  Date range
     RANGE=$1
-    if [[ ( $RANGE != "date" ) && ( $RANGE != "after") && ( $RANGE != "before" ) ]]; then
+    if [[ ( $RANGE != "date" ) && ( $RANGE != "future") && ( $RANGE != "past" ) ]]; then
         RANGE=`date -d $RANGE +%Y-%m-%d`
         RANGE=`date -d $RANGE +%s`
     fi
@@ -79,11 +110,11 @@ function date_view() {
     for i in $DATES ; do
         # Check the date is before or after
         DATE=`date -d "$i" +%s`
-        if [ $RANGE = "after" ]; then
+        if [ $RANGE = "future" ]; then
             if [ $DATE -lt $TODAY ]; then
                 continue
             fi
-        elif [ $RANGE = "before" ]; then
+        elif [ $RANGE = "past" ]; then
             if [ $DATE -gt $TODAY ]; then
                 continue
             fi
@@ -118,42 +149,13 @@ function date_view() {
     fi
 }
 
-function context_view() {
-    #  Show contexts in alphabetical order and todo items in priority order
-    echo "=====  Contexts  ====="
-    echo ""
-
-    #  Find all contexts and sort
-    CONTEXTS=`grep -o '[^  ]*@[^  ]\+' "$TODO_FILE" | grep '^@' | sort -u | sed 's/@//g'`
-
-    #  For each context show header and the list of todo items
-    for i in $CONTEXTS ; do
-        #  Use core _list function, does numbering and colouring for us
-        CONTEXT_LIST=`_list "$TODO_FILE" "@$i" "$term" | sed 's/\(^@\|\ *@\)[^ ]*\ */ /g'`
-        if [ -n "${CONTEXT_LIST}" ]; then
-            echo "---  $i  ---"
-            echo "${CONTEXT_LIST}"
-            echo ""
-        fi
-    done
-    #  Show todo items not associated to a context
-    CONTEXT_LIST=`_list "$TODO_FILE" "$term" | grep -v "@[^ ]*\ *"`
-    if [ -n "${CONTEXT_LIST}" ]; then
-        echo "---  Items without context  ---"
-        echo "${CONTEXT_LIST}"
-    fi
-}
-
-
-OPTIONCHECK=`echo $option | sed -n '/^\(project\|context\|date\|nodate\|after\|before\|today\|tomorrow\|yesterday\|\([+-][0-9]\+\|[0-9]\+\)\(days\|weeks\|months\|years\)\)$/p'`
-if [ -n "$OPTIONCHECK" ]; then
-    if [ "$option" = "project" ]; then
-        project_view
-    elif [ "$option" = "context" ]; then
-        context_view
-    else
-        date_view $option
-    fi
+VALID_OPTION=`echo $option | sed -n '/^\(project\|context\|date\|nodate\|future\|past\|today\|tomorrow\|yesterday\|\([+-][0-9]\+\|[0-9]\+\)\(days\|weeks\|months\|years\)\)$/p'`
+if [[ -n "$VALID_OPTION" ]]; then
+    case $option in
+    project) project_view;;
+    context) context_view;;
+    *) date_view $option;;
+    esac
 else
     usage
 fi
