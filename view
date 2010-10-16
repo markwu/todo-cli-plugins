@@ -1,7 +1,7 @@
 #!/bin/bash
 # Author : Mark Wu, http://blog.markplace.net
-# License: GPL, http://www.gnu.org/copyleft/gpl.html
-# Inspired by Paul Mansfield's projectview, http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
+# License: GPL3, http://www.gnu.org/copyleft/gpl.html
+# Credit : Inspired by and based on Paul Mansfield's projectview, http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
 
 # Stop Verbose lines, thanks to Mark Harrison
 TODOTXT_VERBOSE=0
@@ -22,15 +22,22 @@ function usage() {
     echo "    Show todo items containing TERM, grouped by OPTION, and displayed in"
     echo "    priority order. If no TERM provided, displays entire todo.txt."
     echo "    OPTION:"
-    echo "      project : Summarized by project ( +project )"
-    echo "      context : Summarized by context ( @context )"
-    echo "      date    : Summarized by date ( t:date )"
-    echo "      before  : Summarized by date before and with today"
-    echo "      after   : Summarized by date after and with today"
+    echo "      project : Show todo items group by project"
+    echo "      context : Show todo items group by context"
+    echo "      date    : Show todo items group by date"
+    echo "      nodate  : Show todo items group by date without date"
+    echo "      past    : Show todo items group by date before and with today"
+    echo "      future  : Show todo items group by date after and with today"
+    echo "      ?length : Show todo items group by date from today to ?length"
+    echo "                ? could be sign(+-) or unsign numbers."
+    echo "                Length could be (days|weeks|months|years)"
     echo "    Example:"
     echo "      \$ todo.sh $(basename $0) project          # Show todo items grouped by project"
     echo "      \$ todo.sh $(basename $0) project @context # Show todo items grouped by project and filtered by @context"
+    echo "      \$ todo.sh $(basename $0) context          # Show todo items grouped by context"
     echo "      \$ todo.sh $(basename $0) date +project    # Show todo items grouped by date and filtered by +project"
+    echo "      \$ todo.sh $(basename $0) -3days           # Show todo items grouped by date from today to 3days before today"
+    echo "      \$ todo.sh $(basename $0) 4weeks           # Show todo items grouped by date from today to 4weeks after today"
     echo ""
     exit
 }
@@ -152,9 +159,15 @@ function date_view() {
 VALID_OPTION=`echo $option | sed -n '/^\(project\|context\|date\|nodate\|future\|past\|today\|tomorrow\|yesterday\|\([+-][0-9]\+\|[0-9]\+\)\(days\|weeks\|months\|years\)\)$/p'`
 if [[ -n "$VALID_OPTION" ]]; then
     case $option in
-    project) project_view;;
-    context) context_view;;
-    *) date_view $option;;
+    'project')
+        project_view
+        ;;
+    'context')
+        context_view
+        ;;
+    *)
+        date_view $option
+        ;;
     esac
 else
     usage
