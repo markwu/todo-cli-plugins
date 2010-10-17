@@ -1,20 +1,31 @@
-Plugin for Todo.txt CLI
+Addon for Todo.txt CLI
 
-Plugin Name : view
+Addon Name  : view
 Author      : Mark Wu, http://blog.markplace.net
-License     : GPL, http://www.gnu.org/copyleft/gpl.html
-Inspired    : By Paul Mansfield's projectview, http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
+License     : GPL3, http://www.gnu.org/copyleft/gpl.html
+Credit      : Inspired by and based on Paul Mansfield's projectview, http://github.com/the1ts/todo.txt-plugins/blob/master/README.projects
 Description : Show todo items containing TERM, grouped by [OPTION], and displayed in priority order. If no TERM provided, displays entire todo.txt.
 Usage       :
-  todo.sh view [OPTION] [TERM]
-  [OPTION]
-     project : Summarized by project ( +project )
-     context : Summarized by context ( @context )
-     date    : Summarized by date ( t:date )
-     before  : Summarized by date before and with today
-     after   : Summarized by date after and with today"
-
-Example     :
-  $ todo.sh view project          # Show todo items grouped by project
-  $ todo.sh view project @context # Show todo items grouped by project and filtered by @context
-  $ todo.sh view date +project    # Show todo items grouped by date and filtered by +project
+    todo.sh view [OPTION] [TERM]
+    Show todo items containing TERM, grouped by OPTION, and displayed in
+    priority order. If no TERM provided, displays entire todo.txt.
+    OPTION:
+      project   : Show todo items group by project
+      context   : Show todo items group by context
+      date      : Show todo items group by date
+      nodate    : Show todo items group by date without date
+      past      : Show todo items group by date from today to past
+      future    : Show todo items group by date from today to future
+      today     : Show todo items group by date only today
+      yesterday : Show todo items group by date from today to yesterday
+      tomorrow  : Show todo items group by date from today to tomorrow
+      ?length   : Show todo items group by date from today to ?length
+                  ? could be signed(+-) or unsigned numbers.
+                  Length could be (days|weeks|months|years)
+    Example:
+      $ todo.sh view project          # Show todo items grouped by project
+      $ todo.sh view project @context # Show todo items grouped by project and filtered by @context
+      $ todo.sh view context          # Show todo items grouped by context
+      $ todo.sh view date +project    # Show todo items grouped by date and filtered by +project
+      $ todo.sh view -3days           # Show todo items grouped by date from today to 3days before today
+      $ todo.sh view 4weeks           # Show todo items grouped by date from today to 4weeks after today
