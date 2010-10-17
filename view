@@ -63,6 +63,7 @@ function project_view() {
             echo ""
         fi
     done
+
     # Show todo items not associated to a project
     PROJECT_LIST=$(_list "$TODO_FILE" "$term" | grep -v "+\w")
     if  [[ -n "${PROJECT_LIST}" ]]; then
@@ -89,6 +90,7 @@ function context_view() {
             echo ""
         fi
     done
+
     # Show todo items not associated to a context
     CONTEXT_LIST=$(_list "$TODO_FILE" "$term" | grep -v "@[^ ]*\ *")
     if [[ -n "${CONTEXT_LIST}" ]]; then
@@ -105,58 +107,34 @@ function date_view() {
     #  Find all dates and sort
     DATES=$(grep -o '[^  ]*t:[^  ]\+' "$TODO_FILE" | grep '^t:' | sort -u | sed 's/^t://g')
 
-    #  Date threshold
-    THRESHOLD=$1
-    re="^(date|nodate|future|past)$"
-    if [[ ! ( "$THRESHOLD" =~ $re ) ]]; then
-        THRESHOLD=$(date -d $THRESHOLD +%Y-%m-%d)
-        THRESHOLD=$(date -d $THRESHOLD +%s)
-    fi
+    #  Get option
+    option=$1
 
-    #  Today
-    TODAY=$(date +%Y-%m-%d)
-    TODAY=$(date -d $TODAY +%s)
+    #  Get today
+    today=$(date -d $(date +%Y-%m-%d) +%s)
 
     #  For each date show header and the list of todo items
-    for i in $DATES ; do
-        # Check the date is before or after
-        DATE=$(date -d "$i" +%s)
-        if [ $THRESHOLD = "future" ]; then
-            if [ $DATE -lt $TODAY ]; then
-                continue
-            fi
-        elif [ $THRESHOLD = "past" ]; then
-            if [ $DATE -gt $TODAY ]; then
-                continue
-            fi
-        elif [ $THRESHOLD = "nodate" ]; then
+    for date in $DATES ; do
+        # Check it is a valid date or not
+        date_check $option $today $date
+        show="$?"
+        if [[ $show -eq 0 ]]; then
+            # If it is not a valid date, just do nothing
             continue
-        elif [ $THRESHOLD != "date" ]; then
-            if [ $THRESHOLD = $TODAY ]; then
-                if [ $DATE != $TODAY ]; then
-                    continue
-                fi
-            elif [ $THRESHOLD -gt $TODAY ]; then
-                if [[ ( $DATE -lt $TODAY ) || ( $DATE -gt $THRESHOLD ) ]]; then
-                    continue
-                fi
-            elif [ $THRESHOLD -lt $TODAY ]; then
-                if [[ ( $DATE -gt $TODAY ) || ( $DATE -lt $THRESHOLD ) ]]; then
-                    continue
-                fi
-            fi
         fi
+
         #  Use core _list function, does numbering and colouring for us
-        DATE_LIST=$(_list "$TODO_FILE" "t:$i" "$term" | sed 's/\(^t:\|\ *t:\)[0-9-]*\ */ /g')
+        DATE_LIST=$(_list "$TODO_FILE" "t:$date" "$term" | sed 's/\(^t:\|\ *t:\)[0-9-]*\ */ /g')
         if [ -n "${DATE_LIST}" ]; then
-            echo  "---  $i  ---"
+            echo  "---  $date  ---"
             echo  "${DATE_LIST}"
             echo  ""
         fi
     done
+
     #  Show todo items not associated to a date
     re="^(date|nodate)$"
-    if [[ $THRESHOLD =~ $re ]]; then
+    if [[ "$option" =~ $re ]]; then
         DATE_LIST=$(_list "$TODO_FILE" "$term" | grep -v "t:[0-9-]*")
         if [ -n "${DATE_LIST}" ]; then
             echo "---  Items without date  ---"
@@ -165,6 +143,54 @@ function date_view() {
     fi
 }
 
+function date_check() {
+    # Assign variables
+    threshold=$1
+    today=$2
+    _date=$(date -d "$3" +%s)
+
+    # Check if the date is valid or not
+    # return:
+    #   1: If the date is valid
+    #   0: If the date is invalid
+    case $threshold in
+    'future')
+        if [[ "$_date" -ge "$today" ]]; then
+            return 1
+        fi
+        ;;
+    'past')
+        if [[ "$_date" -le "$today" ]]; then
+            return 1
+        fi
+        ;;
+    'nodate')
+        return 0
+        ;;
+    'date')
+        return 1
+        ;;
+    *)
+        if [[ "$threshold" -eq "$today" ]]; then
+            if [[ "$_date" -eq "$today" ]]; then
+                return 1
+            fi
+        elif [[ "$threshold" -gt "$today" ]]; then
+            if [[ ( "$_date" -ge "$today" ) && ( "$_date" -le "$threshold" ) ]]; then
+                return 1
+            fi
+        elif [[ "$threshold" -lt "$today" ]]; then
+            if [[ ( "$_date" -le "$today" ) && ( "$_date" -ge "$threshold" ) ]]; then
+                return 1
+            fi
+        fi
+        ;;
+    esac
+
+    return 0
+}
+
+# Validate the input options
 re="^(help|project|context|date|nodate|future|past|today|tomorrow|yesterday|([+-][0-9]+|[0-9]+)(days|weeks|months|years))$"
 if [[ "$option" =~ $re ]]; then
     case $option in
@@ -178,6 +204,11 @@ if [[ "$option" =~ $re ]]; then
         context_view
         ;;
     *)
+        re="^(date|nodate|future|past)$"
+        if [[ ! ( "$option" =~ $re ) ]]; then
+            option=$(date -d $(date -d $option +%Y-%m-%d) +%s)
+        fi
+
         date_view $option
         ;;
     esac
