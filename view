@@ -163,9 +163,12 @@ function date_view() {
     fi
 }
 
-VALID_OPTION=`echo $option | sed -n '/^\(project\|context\|date\|nodate\|future\|past\|today\|tomorrow\|yesterday\|\([+-][0-9]\+\|[0-9]\+\)\(days\|weeks\|months\|years\)\)$/p'`
+VALID_OPTION=`echo $option | sed -n '/^\(help\|project\|context\|date\|nodate\|future\|past\|today\|tomorrow\|yesterday\|\([+-][0-9]\+\|[0-9]\+\)\(days\|weeks\|months\|years\)\)$/p'`
 if [[ -n "$VALID_OPTION" ]]; then
     case $option in
+    'help')
+        usage
+        ;;
     'project')
         project_view
         ;;
@@ -177,5 +180,6 @@ if [[ -n "$VALID_OPTION" ]]; then
         ;;
     esac
 else
-    usage
+    echo "Error: Unrecognized option \"$option\"."
+    echo "Try \"todo.sh view help\" to get more information."
 fi
