@@ -105,11 +105,12 @@ function date_view() {
     #  Find all dates and sort
     DATES=$(grep -o '[^  ]*t:[^  ]\+' "$TODO_FILE" | grep '^t:' | sort -u | sed 's/^t://g')
 
-    #  Date range
-    RANGE=$1
-    if [[ ( $RANGE != "date" ) && ( $RANGE != "nodate" ) && ( $RANGE != "future") && ( $RANGE != "past" ) ]]; then
-        RANGE=$(date -d $RANGE +%Y-%m-%d)
-        RANGE=$(date -d $RANGE +%s)
+    #  Date threshold
+    THRESHOLD=$1
+    re="^(date|nodate|future|past)$"
+    if [[ ! ( "$THRESHOLD" =~ $re ) ]]; then
+        THRESHOLD=$(date -d $THRESHOLD +%Y-%m-%d)
+        THRESHOLD=$(date -d $THRESHOLD +%s)
     fi
 
     #  Today
@@ -120,27 +121,27 @@ function date_view() {
     for i in $DATES ; do
         # Check the date is before or after
         DATE=$(date -d "$i" +%s)
-        if [ $RANGE = "future" ]; then
+        if [ $THRESHOLD = "future" ]; then
             if [ $DATE -lt $TODAY ]; then
                 continue
             fi
-        elif [ $RANGE = "past" ]; then
+        elif [ $THRESHOLD = "past" ]; then
             if [ $DATE -gt $TODAY ]; then
                 continue
             fi
-        elif [ $RANGE = "nodate" ]; then
+        elif [ $THRESHOLD = "nodate" ]; then
             continue
-        elif [ $RANGE != "date" ]; then
-            if [ $RANGE = $TODAY ]; then
+        elif [ $THRESHOLD != "date" ]; then
+            if [ $THRESHOLD = $TODAY ]; then
                 if [ $DATE != $TODAY ]; then
                     continue
                 fi
-            elif [ $RANGE -gt $TODAY ]; then
-                if [[ ( $DATE -lt $TODAY ) || ( $DATE -gt $RANGE ) ]]; then
+            elif [ $THRESHOLD -gt $TODAY ]; then
+                if [[ ( $DATE -lt $TODAY ) || ( $DATE -gt $THRESHOLD ) ]]; then
                     continue
                 fi
-            elif [ $RANGE -lt $TODAY ]; then
-                if [[ ( $DATE -gt $TODAY ) || ( $DATE -lt $RANGE ) ]]; then
+            elif [ $THRESHOLD -lt $TODAY ]; then
+                if [[ ( $DATE -gt $TODAY ) || ( $DATE -lt $THRESHOLD ) ]]; then
                     continue
                 fi
             fi
@@ -154,7 +155,8 @@ function date_view() {
         fi
     done
     #  Show todo items not associated to a date
-    if [[ ( $RANGE == "date" ) || ( $RANGE == "nodate" ) ]]; then
+    re="^(date|nodate)$"
+    if [[ $THRESHOLD =~ $re ]]; then
         DATE_LIST=$(_list "$TODO_FILE" "$term" | grep -v "t:[0-9-]*")
         if [ -n "${DATE_LIST}" ]; then
             echo "---  Items without date  ---"
@@ -163,8 +165,8 @@ function date_view() {
     fi
 }
 
-VALID_OPTION=`echo $option | sed -n '/^\(help\|project\|context\|date\|nodate\|future\|past\|today\|tomorrow\|yesterday\|\([+-][0-9]\+\|[0-9]\+\)\(days\|weeks\|months\|years\)\)$/p'`
-if [[ -n "$VALID_OPTION" ]]; then
+re="^(help|project|context|date|nodate|future|past|today|tomorrow|yesterday|([+-][0-9]+|[0-9]+)(days|weeks|months|years))$"
+if [[ "$option" =~ $re ]]; then
     case $option in
     'help')
         usage
