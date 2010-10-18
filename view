@@ -56,7 +56,7 @@ function project_view() {
     # For each project show header and the list of todo items
     for project in $PROJECTS; do
         # Use core _list function, does numbering and colouring for us
-        PROJECT_LIST=$(_list "$TODO_FILE" "+$project" "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g')
+        PROJECT_LIST=$(_list "$TODO_FILE" "+$project\b" "$term" | sed 's/\(^+\|\ *+\)[a-zA-Z0-9\{._\-\}]*\ */ /g')
         if [[ -n "${PROJECT_LIST}" ]]; then
             echo "---  $project  ---"
             echo "${PROJECT_LIST}"
@@ -83,7 +83,7 @@ function context_view() {
     # For each context show header and the list of todo items
     for context in $CONTEXTS ; do
         # Use core _list function, does numbering and colouring for us
-        CONTEXT_LIST=$(_list "$TODO_FILE" "@$context" "$term" | sed 's/\(^@\|\ *@\)[^ ]*\ */ /g')
+        CONTEXT_LIST=$(_list "$TODO_FILE" "@$context\b" "$term" | sed 's/\(^@\|\ *@\)[^ ]*\ */ /g')
         if [[ -n "${CONTEXT_LIST}" ]]; then
             echo "---  $context  ---"
             echo "${CONTEXT_LIST}"
