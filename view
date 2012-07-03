@@ -83,7 +83,7 @@ function context_view() {
     # For each context show header and the list of todo items
     for context in $CONTEXTS ; do
         # Use core _list function, does numbering and colouring for us
-        CONTEXT_LIST=$(_list "$TODO_FILE" "@$context\b" "$term" | sed 's/\(^@\|\ *@\)[^ ]*\ */ /g')
+        CONTEXT_LIST=$(_list "$TODO_FILE" "@$context\b" "$term" | sed 's/(^@|\ *@)[^[:cntrl:] ]\ */ /g')
         if [[ -n "${CONTEXT_LIST}" ]]; then
             echo "---  $context  ---"
             echo "${CONTEXT_LIST}"
