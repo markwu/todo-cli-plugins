@@ -190,29 +190,32 @@ function date_check() {
     return 0
 }
 
+function error() {
+    [[ -z $option ]] || echo "Error: Unrecognized option \"$option\"."
+    usage
+}
+
 # Validate the input options
-re="^(help|project|context|date|nodate|future|past|today|tomorrow|yesterday|([+-][0-9]+|[0-9]+)(days|weeks|months|years))$"
-if [[ "$option" =~ $re ]]; then
-    case $option in
-    'help')
+case $option in
+    'help'|'usage'|'-h'|'')
         usage
         ;;
-    'project')
+    'project'|'+')
         project_view
         ;;
-    'context')
+    'context'|'@')
         context_view
         ;;
     *)
         re="^(date|nodate|future|past)$"
         if [[ ! ( "$option" =~ $re ) ]]; then
-            option=$(date -d $(date -d $option +%Y-%m-%d) +%s)
+            date=$(date -d "$option" +%Y-%m-%d 2>/dev/null)
+            [[ $? != 0 ]] && error
+            date=$(date -d $date +%s 2>/dev/null)
+        else
+            date="$option"
         fi
 
-        date_view $option
+        date_view $date
         ;;
-    esac
-else
-    echo "Error: Unrecognized option \"$option\"."
-    echo "Try \"todo.sh view help\" to get more information."
-fi
+esac
