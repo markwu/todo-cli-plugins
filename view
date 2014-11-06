@@ -78,7 +78,7 @@ function context_view() {
     echo ""
 
     # Find all contexts and sort
-    CONTEXTS=$(grep -o '[^  ]*@[^  ]\+' "$TODO_FILE" | grep '^@' | sort -u | sed 's/@//g')
+    CONTEXTS=$(grep -o '[^  ]*@[^  ]\+' "$TODO_FILE" | grep '^@' | sort -uf | sed 's/@//g')
 
     # For each context show header and the list of todo items
     for context in $CONTEXTS ; do
