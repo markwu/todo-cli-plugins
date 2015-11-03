@@ -24,6 +24,7 @@ function usage() {
     echo "    OPTION:"
     echo "      project   : Show todo items group by project"
     echo "      context   : Show todo items group by context"
+    echo "      overdue   : Show todo items with due date past today's date"
     echo "      date      : Show todo items group by date"
     echo "      nodate    : Show todo items group by date without date"
     echo "      past      : Show todo items group by date from today to past"
@@ -72,11 +73,7 @@ function project_view() {
     fi
 }
 
-function context_view() {
-    # Show contexts in alphabetical order and todo items in priority order
-    echo "=====  Contexts  ====="
-    echo ""
-
+function context_view() {    # Show contexts in alphabetical order and todo items in priority order
     # Find all contexts and sort
     CONTEXTS=$(grep -o '[^  ]*@[^  ]\+' "$TODO_FILE" | grep '^@' | sort -u | sed 's/@//g')
 
@@ -97,6 +94,25 @@ function context_view() {
         echo "---  Items without context  ---"
         echo "${CONTEXT_LIST}"
     fi
+}
+
+function overdue_view() {
+    TODAY=$(date -d $(date +%Y-%m-%d) +"%Y%m%d")
+
+    #  Find all dates and sort
+    DATES=$(grep -o '[^  ]*due:[^  ]\+' "$TODO_FILE" | grep '^due:' | sort -u | sed 's/^due://g')
+
+    #  For each date show header and the list of todo items
+    for date in $DATES ; do
+    #     #  Use core _list function, does numbering and colouring for us
+        DATE_LIST=$(_list "$TODO_FILE" "due:$date" "$term" | sed 's/\(^due:\|\ *due:\)[0-9-]*\ */ /g' )
+        if [ -n "${DATE_LIST}" ]; then
+            DATE2=$(date -d $date +"%Y%m%d")
+            if [ $TODAY -ge $DATE2 ]; then
+                echo "${DATE_LIST}";
+            fi
+        fi
+    done
 }
 
 function date_view() {
@@ -191,7 +207,7 @@ function date_check() {
 }
 
 # Validate the input options
-re="^(help|project|context|date|nodate|future|past|today|tomorrow|yesterday|([+-][0-9]+|[0-9]+)(days|weeks|months|years))$"
+re="^(help|project|context|overdue|date|nodate|future|past|today|tomorrow|yesterday|([+-][0-9]+|[0-9]+)(days|weeks|months|years))$"
 if [[ "$option" =~ $re ]]; then
     case $option in
     'help')
@@ -203,6 +219,9 @@ if [[ "$option" =~ $re ]]; then
     'context')
         context_view
         ;;
+    'overdue')
+        overdue_view
+        ;;
     *)
         re="^(date|nodate|future|past)$"
         if [[ ! ( "$option" =~ $re ) ]]; then
@@ -213,6 +232,7 @@ if [[ "$option" =~ $re ]]; then
         ;;
     esac
 else
-    echo "Error: Unrecognized option \"$option\"."
-    echo "Try \"todo.sh view help\" to get more information."
+    #echo "Error: Unrecognized option \"$option\"."
+    #echo "Try \"todo.sh view help\" to get more information."
+    usage
 fi
