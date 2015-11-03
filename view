@@ -73,7 +73,11 @@ function project_view() {
     fi
 }
 
-function context_view() {    # Show contexts in alphabetical order and todo items in priority order
+function context_view() {
+    # Show contexts in alphabetical order and todo items in priority order
+    echo "=====  Contexts  ====="
+    echo ""
+    
     # Find all contexts and sort
     CONTEXTS=$(grep -o '[^  ]*@[^  ]\+' "$TODO_FILE" | grep '^@' | sort -u | sed 's/@//g')
 
@@ -232,7 +236,6 @@ if [[ "$option" =~ $re ]]; then
         ;;
     esac
 else
-    #echo "Error: Unrecognized option \"$option\"."
-    #echo "Try \"todo.sh view help\" to get more information."
-    usage
+    echo "Error: Unrecognized option \"$option\"."
+    echo "Try \"todo.sh view help\" to get more information."
 fi
